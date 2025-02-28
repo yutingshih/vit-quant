@@ -173,3 +173,11 @@ cython_debug/
 # Datasets and model weights
 datasets
 weights
+
+# Logs
+logs/
+
+# Private keys
+keys/
+secrets/
+tokens/
