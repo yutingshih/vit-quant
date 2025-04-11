@@ -1,4 +1,5 @@
 import pytest
+import timm
 
 from src.dataset.imagenet import ImageNetLoaderGenerator as ImageNet
 
@@ -26,7 +27,8 @@ def test_imagenet_test_loader():
 
     # Use timm-style data transform
     imagenet = ImageNet(
-        root="./datasets/imagenet/image_dir", model="vit_base_patch16_224"
+        root="./datasets/imagenet/image_dir",
+        model=timm.create_model("vit_tiny_patch16_224", pretrained=True),
     )
 
     loader = imagenet.test_loader(batch_size=BATCH_SIZE)
