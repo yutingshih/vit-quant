@@ -36,5 +36,5 @@ datasets/imagenet/image_dir
 Run smoke test to verify the dataset. (about 30 seconds)
 
 ```shell
-pytest tests/dataset/imagenet.py -m slow
+pytest tests/dataset -m slow
 ```

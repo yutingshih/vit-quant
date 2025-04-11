@@ -1,65 +1,73 @@
 import os
+from typing import Any
 
-from torchvision import transforms, datasets
-from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+from timm.data import resolve_data_config
+from timm.data.transforms_factory import create_transform
+
+from src.dataset.base import LoaderGenerator
 
 
-class ImageNet:
-    NORMALOZE = transforms.Normalize(
-        mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-    )
-    IMAGE_SIZE = 224
-
+class ImageNetLoaderGenerator(LoaderGenerator):
     def __init__(
         self,
         root: str,
-        use_gpu: bool = True,
-    ) -> None:
+        *,
+        model: str | None = None,
+        num_workers: int = 16,
+        pin_memory: bool = True,
+        **common_args,
+    ):
+        super().__init__(
+            root, num_workers=num_workers, pin_memory=pin_memory, **common_args
+        )
         self.root = root
-        self.use_gpu = use_gpu
-        self._train_loader = None
-        self._val_loader = None
+        self.model = model
 
-    def get_train_loader(self, batch_size: int = 256) -> DataLoader:
-        if self._train_loader is None:
-            self._train_loader = DataLoader(
-                datasets.ImageFolder(
-                    os.path.join(self.root, "ILSVRC2012_img_train"),
-                    transforms.Compose(
-                        [
-                            transforms.RandomResizedCrop(self.IMAGE_SIZE),
-                            transforms.RandomHorizontalFlip(),
-                            transforms.Resize(self.IMAGE_SIZE),
-                            transforms.ToTensor(),
-                            self.NORMALOZE,
-                        ]
-                    ),
-                ),
-                batch_size=batch_size,
-                shuffle=True,
-                num_workers=8,
-                pin_memory=self.use_gpu,
-            )
-        return self._train_loader
+    def train_set(self):
+        return datasets.ImageFolder(
+            root=os.path.join(self.root, "ILSVRC2012_img_train"),
+            transform=get_imagenet_transform(
+                is_training=True, model=self.model
+            ),
+        )
 
-    def get_val_loader(self, batch_size: int = 1000) -> DataLoader:
-        if self._val_loader is None:
-            self._val_loader = DataLoader(
-                datasets.ImageFolder(
-                    os.path.join(self.root, "val"),
-                    transforms.Compose(
-                        [
-                            transforms.Resize(256),
-                            transforms.CenterCrop(self.IMAGE_SIZE),
-                            transforms.Resize(self.IMAGE_SIZE),
-                            transforms.ToTensor(),
-                            self.NORMALOZE,
-                        ]
-                    ),
+    def test_set(self):
+        return datasets.ImageFolder(
+            root=os.path.join(self.root, "val"),
+            transform=get_imagenet_transform(
+                is_training=False, model=self.model
+            ),
+        )
+
+
+def get_imagenet_transform(is_training: bool = False, model: Any | None = None):
+    # Use timm's data config if available
+    if model:
+        config = resolve_data_config(model=model)
+        return create_transform(**config, is_training=is_training)
+
+    # Fallback to torchvision transforms
+    if is_training:
+        return transforms.Compose(
+            [
+                transforms.Resize(256),
+                transforms.RandomResizedCrop(224),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
                 ),
-                batch_size=batch_size,
-                shuffle=False,
-                num_workers=8,
-                pin_memory=self.use_gpu,
-            )
-        return self._val_loader
+            ]
+        )
+    else:
+        return transforms.Compose(
+            [
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                ),
+            ]
+        )

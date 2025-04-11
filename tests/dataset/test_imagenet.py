@@ -1,23 +1,17 @@
 import pytest
 
-from src.dataset.imagenet import ImageNet
-
-
-@pytest.fixture
-def imagenet_instance():
-    return ImageNet(root="./datasets/imagenet/image_dir", use_gpu=True)
+from src.dataset.imagenet import ImageNetLoaderGenerator as ImageNet
 
 
 @pytest.mark.slow
-def test_imagenet_train_loader(imagenet_instance: ImageNet):
+def test_imagenet_train_loader():
     NUM_IMAGES = 1_281_167  # Total number of training samples in ImageNet
     BATCH_SIZE = 256
 
-    try:
-        loader = imagenet_instance.get_train_loader(batch_size=BATCH_SIZE)
-    except Exception:
-        pytest.fail("get_train_loader() raised an exception unexpectedly!")
+    # Use torchvision-style data transform
+    imagenet = ImageNet(root="./datasets/imagenet/image_dir")
 
+    loader = imagenet.train_loader(batch_size=BATCH_SIZE)
     assert len(loader) == (NUM_IMAGES - 1) // BATCH_SIZE + 1
 
     images, labels = next(iter(loader))
@@ -26,16 +20,16 @@ def test_imagenet_train_loader(imagenet_instance: ImageNet):
 
 
 @pytest.mark.slow
-def test_imagenet_val_loader(imagenet_instance: ImageNet):
+def test_imagenet_test_loader():
     NUM_IMAGES = 50_000  # Total number of validation samples in ImageNet
     BATCH_SIZE = 1000
 
-    try:
-        loader = imagenet_instance.get_val_loader(batch_size=BATCH_SIZE)
-    except Exception:
-        pytest.fail("get_val_loader() raised an exception unexpectedly!")
+    # Use timm-style data transform
+    imagenet = ImageNet(
+        root="./datasets/imagenet/image_dir", model="vit_base_patch16_224"
+    )
 
-
+    loader = imagenet.test_loader(batch_size=BATCH_SIZE)
     assert len(loader) == (NUM_IMAGES - 1) // BATCH_SIZE + 1
 
     images, labels = next(iter(loader))
