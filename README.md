@@ -38,3 +38,23 @@ Run smoke test to verify the dataset. (about 30 seconds)
 ```shell
 pytest tests/dataset -m slow
 ```
+
+## Getting Started
+
+### Main Script
+
+Under the project root, run the main script with the following command to see the help message:
+
+```
+PYTHONPATH=. python3 src/main.py --help
+```
+
+To run an evaluation on ImageNet-1K with a pretrained model, use the following command:
+
+```shell
+PYTHONPATH=. python3 src/main.py \
+    --model vit_small_patch16_224 \
+    --dataset datasets/imagenet/image_dir \
+    --batch-size 256 \
+    --device cuda:0
+```
