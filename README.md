@@ -49,10 +49,10 @@ Under the project root, run the main script with the following command to see th
 PYTHONPATH=. python3 src/main.py --help
 ```
 
-To run an evaluation on ImageNet-1K with a pretrained model, use the following command:
+For example, to run an evaluation on ImageNet-1K with a pretrained model, use the following command:
 
 ```shell
-PYTHONPATH=. python3 src/main.py \
+PYTHONPATH=. python3 src/main.py eval \
     --model vit_small_patch16_224 \
     --dataset datasets/imagenet/image_dir \
     --batch-size 256 \

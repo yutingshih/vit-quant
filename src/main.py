@@ -1,34 +1,32 @@
 #!/usr/bin/env python3
 
-from time import time
 from pathlib import Path
 
 import typer
 import timm
 import torch
-from torchmetrics.classification import MulticlassAccuracy
-from tqdm import tqdm
 import numpy as np
-from rich.traceback import install
 
 from src.dataset.imagenet import ImageNetLoaderGenerator as ImageNet
 from src.analysis.hook import get_activations, get_weights
 from src.utils.plot import plot_histogram, plot_heatmap
+from src.utils.evaluate import evaluate
+
 
 app = typer.Typer()
-install(show_locals=False)
+
 
 @app.command(name="eval", help="Evaluate a model on ImageNet-1K dataset.")
-def evaluate(
-    model: str | None = None,
-    dataset: str | None = None,
+def evaluate_model(
+    model: str = "vit_small_patch16_224",
+    dataset: str = "./datasets/imagenet/image_dir",
     batch_size: int = 256,
     device: str = "cuda",
 ) -> None:
-    model = model or "vit_small_patch16_224"
+    print(f"[*] Evaluating model {model} ...")
     model = timm.create_model(model, pretrained=True).eval().to(device)
 
-    dataset_path = Path(dataset or "./datasets/imagenet/image_dir").absolute()
+    dataset_path = Path(dataset).absolute()
     if not dataset_path.exists():
         raise FileNotFoundError(f"Dataset path {dataset_path} does not exist.")
     print(f"Dataset path: {dataset_path}")
@@ -40,18 +38,10 @@ def evaluate(
     print(f"batch size: {batch_size}")
     print(f"number of batches: {len(test_loader)}")
 
-    t = time()
-    top1_acc = MulticlassAccuracy(num_classes=1000, top_k=1).to(device)
-    top5_acc = MulticlassAccuracy(num_classes=1000, top_k=5).to(device)
-    for images, labels in tqdm(test_loader):
-        images, labels = images.to(device), labels.to(device)
-        logits = model(images)
-        top1_acc(logits, labels)
-        top5_acc(logits, labels)
-
-    print(f"evaluation time: {time() - t:.2f} seconds")
-    print(f"top-1 accuracy: {top1_acc.compute(): .4f}")
-    print(f"top-5 accuracy: {top5_acc.compute(): .4f}")
+    res = evaluate(model=model, dataset=dataset, batch_size=batch_size, device=device)
+    print(f"evaluation time: {res['time']:.2f} seconds")
+    print(f"top-1 accuracy: {res['top1']:.2f}")
+    print(f"top-5 accuracy: {res['top5']:.2f}")
 
 
 @app.command(help="Infer a model on a single image from ImageNet-1K.")
@@ -102,7 +92,10 @@ def dump_tensors(
     output_dir: str = "./tensors",
     device: str = "cuda",
     format: str = typer.Option(
-        "pt", "-f", "--format", help="Output format for tensors. Options: 'pt' or 'npz'."
+        "pt",
+        "-f",
+        "--format",
+        help="Output format for tensors. Options: 'pt' or 'npz'.",
     ),
 ) -> None:
     if format not in ["pt", "npz"]:
@@ -167,12 +160,12 @@ def plot(
 
     print("[*] Plotting activations...")
     for name, act in outputs.items():
-        plot_histogram(name, act, outdir , kind="activation")
-        plot_heatmap(name, act, outdir , kind="activation")
+        plot_histogram(name, act, outdir, kind="activation")
+        plot_heatmap(name, act, outdir, kind="activation")
 
     print("[*] Plotting weights...")
     for name, weight in weights.items():
-        plot_histogram(name, weight, outdir , kind="weight")
+        plot_histogram(name, weight, outdir, kind="weight")
 
     print(f"[*] Analysis completed. Plots saved to {outdir}")
 
