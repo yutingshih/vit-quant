@@ -1,10 +1,11 @@
 from time import time
 
+from torch import nn
 from torchmetrics.classification import MulticlassAccuracy
 from tqdm import tqdm
 
 
-def evaluate(model: str, loader: str, device: str = "cuda") -> None:
+def evaluate(model: nn.Module, loader: str, device: str = "cuda") -> dict[str, float]:
     t = time()
     top1_acc = MulticlassAccuracy(num_classes=1000, top_k=1).to(device)
     top5_acc = MulticlassAccuracy(num_classes=1000, top_k=5).to(device)

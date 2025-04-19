@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 from typing import Any
 
 from torchvision import datasets, transforms
@@ -11,7 +11,7 @@ from src.dataset.base import LoaderGenerator
 class ImageNetLoaderGenerator(LoaderGenerator):
     def __init__(
         self,
-        root: str,
+        root: str | Path,
         *,
         model: str | None = None,
         num_workers: int = 16,
@@ -21,23 +21,19 @@ class ImageNetLoaderGenerator(LoaderGenerator):
         super().__init__(
             root, num_workers=num_workers, pin_memory=pin_memory, **common_args
         )
-        self.root = root
+        self.root = Path(root)
         self.model = model
 
     def train_set(self):
         return datasets.ImageFolder(
-            root=os.path.join(self.root, "ILSVRC2012_img_train"),
-            transform=get_imagenet_transform(
-                is_training=True, model=self.model
-            ),
+            root=self.root / "ILSVRC2012_img_train",
+            transform=get_imagenet_transform(is_training=True, model=self.model),
         )
 
     def test_set(self):
         return datasets.ImageFolder(
-            root=os.path.join(self.root, "val"),
-            transform=get_imagenet_transform(
-                is_training=False, model=self.model
-            ),
+            root=self.root / "val",
+            transform=get_imagenet_transform(is_training=False, model=self.model),
         )
 
 

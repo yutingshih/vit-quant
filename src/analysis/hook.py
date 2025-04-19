@@ -6,7 +6,9 @@ import torch.nn as nn
 import torch.nn.quantized as nnq
 
 
-def hook_softmax_gelu(model: nn.Module) -> tuple[list[torch.Tensor]]:
+def hook_softmax_gelu(
+    model: nn.Module,
+) -> tuple[list[torch.Tensor], list[torch.Tensor]]:
     softmax_outputs = []
     gelu_outputs = []
 
@@ -46,7 +48,7 @@ def hook_softmax_gelu(model: nn.Module) -> tuple[list[torch.Tensor]]:
 
 def get_activations(
     model: nn.Module, input: torch.Tensor, layers=None
-) -> tuple[dict[str, torch.Tensor]]:
+) -> tuple[dict[str, torch.Tensor], dict[str, torch.Tensor]]:
     if layers is None:
         layers = (
             nn.Conv2d,

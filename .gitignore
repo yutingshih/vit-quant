@@ -171,6 +171,7 @@ cython_debug/
 .pypirc
 
 # Datasets, model weights, and intermediate tensors
+data
 datasets
 weights
 tensors

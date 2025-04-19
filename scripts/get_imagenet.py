@@ -11,20 +11,24 @@ parser = argparse.ArgumentParser(
     description="Download ImageNet dataset",
     formatter_class=argparse.ArgumentDefaultsHelpFormatter,
 )
-parser.add_argument("path", type=str, default="datasets/imagenet", help="path to save the dataset")
+parser.add_argument(
+    "path", type=str, default="data/imagenet", help="path to save the dataset"
+)
 args = parser.parse_args()
 
 os.environ.setdefault("IMAGENET_USERNAME", input("Enter your ImageNet username: "))
 os.environ.setdefault("IMAGENET_PASSWORD", input("Enter your ImageNet password: "))
-os.environ.setdefault("HUGGINGFACE_TOKEN", input("Enter your HuggingFace access token: "))
+os.environ.setdefault(
+    "HUGGINGFACE_TOKEN", input("Enter your HuggingFace access token: ")
+)
 
 ds_builder = load_dataset_builder("imagenet-1k")
 info = ds_builder.info
 
-print(f'{info.dataset_name = }')
-print(f'{info.version = }')
-print(f'{info.homepage = }')
-print(f'{info.dataset_size = }')
+print(f"{info.dataset_name = }")
+print(f"{info.version = }")
+print(f"{info.homepage = }")
+print(f"{info.dataset_size = }")
 pprint(info.splits)
 
 print(f"Downloading ImageNet dataset to {args.path}...")

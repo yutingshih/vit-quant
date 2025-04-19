@@ -19,7 +19,7 @@ app = typer.Typer()
 @app.command(name="eval", help="Evaluate a model on ImageNet-1K dataset.")
 def evaluate_model(
     model: str = "vit_small_patch16_224",
-    dataset: str = "./datasets/imagenet/image_dir",
+    dataset: str = "./data/imagenet/image_dir",
     batch_size: int = 256,
     device: str = "cuda",
 ) -> None:
@@ -38,22 +38,24 @@ def evaluate_model(
     print(f"batch size: {batch_size}")
     print(f"number of batches: {len(test_loader)}")
 
-    res = evaluate(model=model, dataset=dataset, batch_size=batch_size, device=device)
+    res = evaluate(model=model, loader=test_loader, device=device)
     print(f"evaluation time: {res['time']:.2f} seconds")
-    print(f"top-1 accuracy: {res['top1']:.2f}")
-    print(f"top-5 accuracy: {res['top5']:.2f}")
+    print(f"top-1 accuracy: {res['top1']:.4f}")
+    print(f"top-5 accuracy: {res['top5']:.4f}")
 
 
 @app.command(help="Infer a model on a single image from ImageNet-1K.")
 def infer(
-    model: str = "vit_small_patch16_224",
-    dataset: str = "./datasets/imagenet/image_dir",
+    model_name: str = typer.Option(
+        "vit_small_patch16_224", "-m", "--model", help="Name of a timm model."
+    ),
+    dataset: str = "./data/imagenet/image_dir",
     index: int = typer.Option(0, "-i", "--index", help="Index of the image to infer."),
     device: str = "cuda",
 ) -> None:
     print(f"Inferencing image at index {index} ...")
 
-    model = timm.create_model(model, pretrained=True).eval().to(device)
+    model = timm.create_model(model_name, pretrained=True).eval().to(device)
     dataset_path = Path(dataset).absolute()
     imagenet = ImageNet(root=dataset_path, model=model)
     test_loader = imagenet.test_loader(batch_size=1)
@@ -71,14 +73,14 @@ def infer(
 @app.command(name="dump-arch", help="Dump the model information.")
 def dump_model_info(
     model: str = typer.Argument("vit_small_patch16_224", help="Name of a timm model."),
-    output: str = typer.Option(
+    output_dir: str = typer.Option(
         None,
         "-o",
         "--output",
         help="Output file for model information. Default: logs/model_info/{model}.txt",
     ),
 ) -> None:
-    output = Path(output or f"./logs/model_info/{model}.txt").absolute()
+    output = Path(output_dir or f"./logs/model_info/{model}.txt").absolute()
     output.parent.mkdir(exist_ok=True, parents=True)
     model = timm.create_model(model, pretrained=True)
     print(model, file=open(output, "w"))
@@ -88,7 +90,7 @@ def dump_model_info(
 @app.command(help="Dump input tensors, output tensors, and weights of a model.")
 def dump_tensors(
     model: str = "vit_small_patch16_224",
-    dataset: str = "./datasets/imagenet/image_dir",
+    dataset: str = "./data/imagenet/image_dir",
     output_dir: str = "./tensors",
     device: str = "cuda",
     format: str = typer.Option(
@@ -139,7 +141,7 @@ def dump_tensors(
 @app.command(help="Plot histograms and heatmaps of activations and weights.")
 def plot(
     model: str = "vit_small_patch16_224",
-    dataset: str = "./datasets/imagenet/image_dir",
+    dataset: str = "./data/imagenet/image_dir",
     output: str = "./logs/analysis",
     device: str = "cuda",
 ) -> None:

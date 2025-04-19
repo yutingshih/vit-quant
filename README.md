@@ -58,3 +58,17 @@ PYTHONPATH=. python3 src/main.py eval \
     --batch-size 256 \
     --device cuda:0
 ```
+
+## Pre-commit Hooks
+
+To enable pre-commit hooks, run the following command:
+
+```shell
+pre-commit install
+```
+
+This will automatically run the hooks before each commit. You can also run the hooks manually with the following command:
+
+```shell
+pre-commit run --all-files
+```
