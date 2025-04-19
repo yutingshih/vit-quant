@@ -5,12 +5,18 @@ from pathlib import Path
 
 import typer
 import timm
+import torch
 from torchmetrics.classification import MulticlassAccuracy
 from tqdm import tqdm
+import numpy as np
+from rich.traceback import install
 
 from src.dataset.imagenet import ImageNetLoaderGenerator as ImageNet
+from src.analysis.hook import get_activations, get_weights
+from src.utils.plot import plot_histogram, plot_heatmap
 
 app = typer.Typer()
+install(show_locals=False)
 
 
 @app.command(name="eval", help="Evaluate a model on ImageNet-1K dataset.")
@@ -73,7 +79,7 @@ def infer(
     print(f"Label: {label}")
 
 
-@app.command(name="dump", help="Dump the model information.")
+@app.command(name="dump-arch", help="Dump the model information.")
 def dump_model_info(
     model: str = typer.Argument("vit_small_patch16_224", help="Name of a timm model."),
     output: str = typer.Option(
@@ -88,6 +94,40 @@ def dump_model_info(
     model = timm.create_model(model, pretrained=True)
     print(model, file=open(output, "w"))
     print(f"Model information dumped to {output}")
+
+
+@app.command(help="Plot histograms and heatmaps of activations and weights.")
+def plot(
+    model: str = "vit_small_patch16_224",
+    dataset: str = "./datasets/imagenet/image_dir",
+    output: str = "./logs/analysis",
+    device: str = "cuda",
+) -> None:
+    outdir = Path(output)
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    model = timm.create_model(model, pretrained=True).eval().to(device)
+    dataset_path = Path(dataset).absolute()
+    imagenet = ImageNet(root=dataset_path, model=model)
+    test_loader = imagenet.test_loader(batch_size=1)
+
+    images, _ = next(iter(test_loader))
+    images = images.to(device)
+
+    print("[*] Extracting activations and weights...")
+    inputs, outputs = get_activations(model, images)
+    weights = get_weights(model)
+
+    print("[*] Plotting activations...")
+    for name, act in outputs.items():
+        plot_histogram(name, act, outdir, kind="activation")
+        plot_heatmap(name, act, outdir, kind="activation")
+
+    print("[*] Plotting weights...")
+    for name, weight in weights.items():
+        plot_histogram(name, weight, outdir, kind="weight")
+
+    print(f"[*] Analysis completed. Plots saved to {outdir}")
 
 
 if __name__ == "__main__":
