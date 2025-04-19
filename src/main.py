@@ -18,7 +18,6 @@ from src.utils.plot import plot_histogram, plot_heatmap
 app = typer.Typer()
 install(show_locals=False)
 
-
 @app.command(name="eval", help="Evaluate a model on ImageNet-1K dataset.")
 def evaluate(
     model: str | None = None,
@@ -96,6 +95,54 @@ def dump_model_info(
     print(f"Model information dumped to {output}")
 
 
+@app.command(help="Dump input tensors, output tensors, and weights of a model.")
+def dump_tensors(
+    model: str = "vit_small_patch16_224",
+    dataset: str = "./datasets/imagenet/image_dir",
+    output_dir: str = "./tensors",
+    device: str = "cuda",
+    format: str = typer.Option(
+        "pt", "-f", "--format", help="Output format for tensors. Options: 'pt' or 'npz'."
+    ),
+) -> None:
+    if format not in ["pt", "npz"]:
+        raise ValueError("Format must be either 'pt' or 'npz'.")
+
+    output_path = Path(output_dir) / model
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    model = timm.create_model(model, pretrained=True).eval().to(device)
+    dataset_path = Path(dataset).absolute()
+    imagenet = ImageNet(root=dataset_path, model=model)
+    test_loader = imagenet.test_loader(batch_size=1)
+    image = next(iter(test_loader))[0].to(device)
+
+    print("[*] Extracting activations and weights...")
+    inputs, outputs = get_activations(model, image)
+    weights = get_weights(model)
+
+    print("[*] Dumping tensors...")
+    match format:
+        case "pt":
+            torch.save(inputs, output_path / "inputs.pt")
+            torch.save(outputs, output_path / "outputs.pt")
+            torch.save(weights, output_path / "weights.pt")
+        case "npz":
+            np.savez(
+                output_path / "inputs.npz",
+                **{k: v.cpu().numpy() for k, v in inputs.items()},
+            )
+            np.savez(
+                output_path / "outputs.npz",
+                **{k: v.cpu().numpy() for k, v in outputs.items()},
+            )
+            np.savez(
+                output_path / "weights.npz",
+                **{k: v.cpu().numpy() for k, v in weights.items()},
+            )
+    print(f"[*] Tensors dumped to {output_path}")
+
+
 @app.command(help="Plot histograms and heatmaps of activations and weights.")
 def plot(
     model: str = "vit_small_patch16_224",
@@ -120,12 +167,12 @@ def plot(
 
     print("[*] Plotting activations...")
     for name, act in outputs.items():
-        plot_histogram(name, act, outdir, kind="activation")
-        plot_heatmap(name, act, outdir, kind="activation")
+        plot_histogram(name, act, outdir , kind="activation")
+        plot_heatmap(name, act, outdir , kind="activation")
 
     print("[*] Plotting weights...")
     for name, weight in weights.items():
-        plot_histogram(name, weight, outdir, kind="weight")
+        plot_histogram(name, weight, outdir , kind="weight")
 
     print(f"[*] Analysis completed. Plots saved to {outdir}")
 
