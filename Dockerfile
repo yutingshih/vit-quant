@@ -1,15 +1,15 @@
 FROM nvidia/cuda:13.1.1-cudnn-devel-ubuntu24.04
 
-RUN --mount=type=cache,target=/var/cache/apt \
-    apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    vim \
-    git \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    DEBIAN_FRONTEND=noninteractive \
+    apt-get update && apt-get install -y --no-install-recommends \
     curl \
-    && rm -rf /var/lib/apt/lists/*
+    git \
+    tree \
+    vim
 
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-ENV PATH="~/.local/bin:$PATH"
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 
 ENV color_prompt=yes
 WORKDIR /root
