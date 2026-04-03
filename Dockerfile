@@ -1,14 +1,17 @@
 FROM nvidia/cuda:13.1.1-cudnn-devel-ubuntu24.04
 
+# Leverage BuildKit cache mounts to accelerate APT fetch operations
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     DEBIAN_FRONTEND=noninteractive \
     apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
+    libdw1 \
     tree \
     vim
 
+# Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 
 ENV color_prompt=yes

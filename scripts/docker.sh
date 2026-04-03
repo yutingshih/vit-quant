@@ -1,6 +1,6 @@
 PROJ_DIR=$(realpath $(dirname $0)/..)
 WORK_DIR=/root/vit-quant
-IMAGE=vit-quant:$USER
+IMAGE=vit-quant
 NAME=vit-quant
 
 build() {
