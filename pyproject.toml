@@ -1,7 +1,7 @@
 [project]
 name = "vit-quant"
 version = "0.1.0"
-description = "Add your description here"
+description = "Quantization for Vision Transformers"
 readme = "README.md"
 authors = [
     { name = "Yu-Ting Shi", email = "nn6124030@gs.ncku.edu.tw" }
@@ -9,16 +9,40 @@ authors = [
 requires-python = ">=3.12"
 dependencies = []
 
+[dependency-groups]
+dev = [
+    "pre-commit>=4.5.1",
+    "pyright>=1.1.408",
+    "ruff>=0.15.9",
+]
+
 [project.scripts]
 vit-quant = "vit_quant:main"
+
+[build-system]
+requires = ["scikit-build-core>=0.12", "pybind11>=3"]
+build-backend = "scikit_build_core.build"
 
 [tool.scikit-build]
 minimum-version = "build-system.requires"
 build-dir = "build/{wheel_tag}"
 
 [tool.uv]
-cache-keys = [{ file = "pyproject.toml" }, { file = "src/**/*.{h,c,hpp,cpp}" }, { file = "CMakeLists.txt" }]
+cache-keys = [
+    { file = "pyproject.toml" },
+    { file = "src/**/*.{h,c,hpp,cpp,cu,cuh}" },
+    { file = "CMakeLists.txt" }
+]
 
-[build-system]
-requires = ["scikit-build-core>=0.12", "pybind11>=3"]
-build-backend = "scikit_build_core.build"
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "N", "B", "NPY"]
+
+[tool.pyright]
+typeCheckingMode = "basic"
+pythonVersion = "3.12"
+include = ["src", "tests"]
+reportMissingImports = true

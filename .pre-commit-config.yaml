@@ -1,0 +1,26 @@
+repos:
+    - repo: local
+      hooks:
+          - id: ruff
+            name: ruff
+            entry: uv run ruff check --fix
+            language: system
+            types: [python]
+
+          - id: ruff-format
+            name: ruff-format
+            entry: uv run ruff format
+            language: system
+            types: [python]
+
+          - id: clang-format
+            name: Clang Format
+            entry: clang-format -i
+            language: system
+            files: \.(h|c|cpp|hpp|cu|cuh)$
+
+          - id: pyright
+            name: Pyright Type Check
+            entry: uv run pyright
+            language: system
+            pass_filenames: false
