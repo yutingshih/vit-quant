@@ -8,3 +8,6 @@ wheels/
 
 # Virtual environments
 .venv
+
+# setuptools-scm generated version file
+src/**/_version.py
