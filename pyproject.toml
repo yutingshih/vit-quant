@@ -7,7 +7,10 @@ authors = [
     { name = "Yu-Ting Shi", email = "nn6124030@gs.ncku.edu.tw" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "numpy>=2.4.4",
+    "torch>=2.11.0",
+]
 
 [dependency-groups]
 dev = [
@@ -20,7 +23,7 @@ dev = [
 vit-quant = "vit_quant:main"
 
 [build-system]
-requires = ["scikit-build-core>=0.12", "pybind11>=3"]
+requires = ["scikit-build-core>=0.12", "nanobind>=2.12"]
 build-backend = "scikit_build_core.build"
 
 [tool.scikit-build]
@@ -35,7 +38,7 @@ write_to = "src/vit_quant/_version.py"
 cache-keys = [
     { file = "pyproject.toml" },
     { file = "src/**/*.{h,c,hpp,cpp,cu,cuh}" },
-    { file = "CMakeLists.txt" }
+    { file = "CMakeLists.txt" },
 ]
 
 [tool.ruff]

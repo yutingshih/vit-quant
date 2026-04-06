@@ -3,11 +3,20 @@ Checks: >
     bugprone-*,
     performance-*,
     readability-*,
+    -readability-identifier-length,
     modernize-*,
+    -modernize-avoid-c-arrays,
+    -modernize-use-trailing-return-type,
     cppcoreguidelines-*,
+    -cppcoreguidelines-avoid-c-arrays,
+    -cppcoreguidelines-avoid-non-const-global-variables,
+    -cppcoreguidelines-pro-type-cstyle-cast,
+    -cppcoreguidelines-pro-type-vararg,
+    -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
     google-*,
     -google-readability-todo,
-    -google-runtime-references
+    -google-runtime-references,
+    -google-build-using-namespace,
 WarningsAsErrors: '*'
 HeaderFilterRegex: 'src/.*'  # only check files under src
 CheckOptions:
