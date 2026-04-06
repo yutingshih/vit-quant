@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.18...4.0)
 project(${SKBUILD_PROJECT_NAME} LANGUAGES CXX CUDA)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CUDA_ARCHITECTURES "native")
+set(CMAKE_CUDA_ARCHITECTURES native)
+find_package(CUDAToolkit REQUIRED)
 
 find_package(Python 3.12 REQUIRED COMPONENTS Interpreter Development.Module)
 find_package(nanobind CONFIG REQUIRED)
@@ -13,6 +14,7 @@ nanobind_add_module(kernels NB_STATIC
     src/kernels/binding.cpp
     ${KERNEL_CUDA_SOURCES}
 )
+target_link_libraries(kernels PRIVATE CUDA::cublas)
 install(TARGETS kernels DESTINATION ${SKBUILD_PROJECT_NAME})
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
