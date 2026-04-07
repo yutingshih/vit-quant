@@ -8,23 +8,33 @@ build() {
 }
 
 run() {
-    docker run \
-        -it \
-        --rm \
-        --gpus all \
-        --name $NAME \
-        --hostname docker \
-        --workdir $WORK_DIR \
-        --mount type=bind,src=$PROJ_DIR,dst=$WORK_DIR \
-        $IMAGE
-}
+    local status=$(docker inspect -f '{{.State.Status}}' $NAME 2>/dev/null)
 
-attach() {
-    docker attach $NAME
+    case "$status" in
+        "")
+            docker run \
+                -it \
+                --gpus all \
+                --name $NAME \
+                --hostname docker \
+                --workdir $WORK_DIR \
+                --mount type=bind,src=$PROJ_DIR,dst=$WORK_DIR \
+                $IMAGE
+            ;;
+        "running")
+            docker attach $NAME
+            ;;
+        "created" | "exited" | "pause")
+            docker start -ai $NAME
+            ;;
+        *)
+            echo "Invalid status: $status"
+            ;;
+    esac
 }
 
 if [[ $# -ne 1 ]]; then
-    echo "Usage $0 [build | run | attach]"
+    echo "Usage $0 [build | run]"
 else
     $@
 fi
