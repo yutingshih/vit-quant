@@ -11,7 +11,7 @@ file(GLOB KERNEL_CUDA_SOURCES CONFIGURE_DEPENDS
     src/kernels/*.cu
 )
 nanobind_add_module(kernels NB_STATIC
-    src/kernels/binding.cpp
+    src/kernels/binding.cu
     ${KERNEL_CUDA_SOURCES}
 )
 target_link_libraries(kernels PRIVATE CUDA::cublas)

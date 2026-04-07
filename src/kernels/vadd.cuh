@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cuda_runtime.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>

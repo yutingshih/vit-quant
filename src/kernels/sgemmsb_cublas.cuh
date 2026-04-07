@@ -1,8 +1,10 @@
+#pragma once
+
 #include <cublas_v2.h>
 
 #include <cstdint>
 
-#include "tensor.hpp"
+#include "common.cuh"
 
 void sgemmsb_cublas(Tensor<float> a, Tensor<float> b, Tensor<float> c, float alpha,
                     float beta, int64_t stra, int64_t strb, int64_t strc) {
