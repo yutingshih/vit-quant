@@ -1,11 +1,11 @@
 #include <cublas_v2.h>
-#include <nanobind/nanobind.h>
-#include <nanobind/ndarray.h>
 
-namespace nb = nanobind;
+#include <cstdint>
 
-void sgemmsb_cublas(const nb::ndarray<float> a, const nb::ndarray<float> b,
-                    nb::ndarray<float> c, float alpha, float beta) {
+#include "tensor.hpp"
+
+void sgemmsb_cublas(Tensor<float> a, Tensor<float> b, Tensor<float> c, float alpha,
+                    float beta, int64_t stra, int64_t strb, int64_t strc) {
     const int B = c.shape(0);
     const int M = c.shape(1);
     const int N = c.shape(2);
@@ -13,9 +13,9 @@ void sgemmsb_cublas(const nb::ndarray<float> a, const nb::ndarray<float> b,
     const int lda = K;
     const int ldb = N;
     const int ldc = N;
-    const long long int stra = M * K;
-    const long long int strb = K * N;
-    const long long int strc = M * N;
+    stra = stra >= 0 ? stra : a.stride(0);
+    strb = strb >= 0 ? strb : b.stride(0);
+    strc = strc >= 0 ? strc : c.stride(0);
 
     cublasHandle_t handle;
     cublasCreate(&handle);
