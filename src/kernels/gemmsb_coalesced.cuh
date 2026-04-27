@@ -40,7 +40,8 @@ void gemmsb_coalesced(Tensor<TypeData> a, Tensor<TypeData> b, Tensor<TypeData> c
     strc = strc >= 0 ? strc : c.stride(0);
 
     dim3 bs(16, 16, 4);
-    dim3 gs(1 + (N - 1) / bs.x, 1 + (M - 1) / bs.y, 1 + (B - 1) / bs.z);
+    dim3 gs(div_ceil(N, bs.x), div_ceil(M, bs.y), div_ceil(B, bs.z));
+
     _gemmsb_coalesced<TypeData, TypeAcc><<<gs, bs>>>(
         a.data(), b.data(), c.data(), B, M, N, K, alpha, beta, stra, strb, strc);
     CUDA_CHECK(cudaGetLastError());
